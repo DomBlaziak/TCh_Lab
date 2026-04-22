@@ -14,7 +14,7 @@ RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
 WORKDIR /build
 
 # Pobieranie kodu z repozytorium przez SSH Mount
-RUN --mount=type=ssh,id=s56git git clone git@github.com:DomBlaziak/TCh_Lab.git repo && \
+RUN --mount=type=ssh,id=z1_git git clone git@github.com:DomBlaziak/TCh_Lab.git repo && \
     cp -r repo/src . && \
     cp repo/package.json . && \
     rm -rf repo
