@@ -8,7 +8,7 @@ const cities = [
     { name: "Warsaw", query: "Warsaw,PL" },
     { name: "Berlin", query: "Berlin,DE" },
     { name: "London", query: "London,GB" },
-    { name: "Rome", query: "Rome,IT" } 
+    { name: "Helsinki", query: "Helsinki,FI" }
 ];
 
 router.get('/', function(req, res) {
