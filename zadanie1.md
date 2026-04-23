@@ -86,20 +86,20 @@ dzięki czemu obraz końcowy nie zawiera zbędnych narzędzi.
 -> **Zasada najniższych uprawnień:** Aplikacja działa jako użytkownik nodeapp, a nie root, co ogranicza skutki potencjalnego ataku.
 
 # 3. Instrukcja wdrożeniowa i polecenia
-Przed przystąpieniem do budowy należy pobrać repozytorium i  wejść do folderu z plikami:
+Przed przystąpieniem do budowy należy pobrać repozytorium i wejść do folderu z plikami:
     
     git clone https://github.com/DomBlaziak/TCh_Lab.git
     cd TCh_Lab
     
 a) Budowanie obrazu
-Przykładowy proces budowania wykorzystuje lokalny kontekst i standardowe narzędzie Docker Build:
+Aby zbudować obraz lokalnie, należy wykorzystać poniższe polecenie.
     
-    docker build -t dblaziak/repozytorium_1:latest .
+    docker build -t [NAZWA_OBRAZU]:[TAG] .
     
 b) Uruchomienie kontenera
-Uruchomienie w trybie odłączonym (-d) z przekierowaniem portu 3000 z hosta na port 3000 kontenera (Przykładowe polecenie):
+Uruchomienie w trybie odłączonym (-d) z przekierowaniem portu 3000 z hosta na port 3000 kontenera:
 
-    docker run -d -p 3000:3000 --name weather-app-container dblaziak/repozytorium_1:latest
+    docker run -d -p 3000:3000 --name weather-app-container [NAZWA_OBRAZU]:[TAG]
 
 c) Uzyskanie informacji z logów
 Weryfikacja danych startowych:
@@ -107,13 +107,13 @@ Weryfikacja danych startowych:
     docker logs weather-app-container
 
 d) Sprawdzenie warstw i rozmiaru obrazu
-Aby sprawdzić rozmiar obrazu zapisanego lokalnie:
+Weryfikacja rozmiaru obrazu na dysku:
 
-    docker images dblaziak/repozytorium_1:latest
+    docker images [NAZWA_OBRAZU]:[TAG]
 
 Aby przeanalizować strukturę warstw oraz ich wielkość:
 
-    docker history dblaziak/repozytorium_1:latest
+    docker history [NAZWA_OBRAZU]:[TAG]
 
 # 4. Potwierdzenie działania
 Poprawność wdrożenia aplikacji można zweryfikować na dwa sposoby:
