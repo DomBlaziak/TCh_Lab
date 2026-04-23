@@ -70,6 +70,7 @@ WORKDIR /home/nodeapp/app
 # Kopiowanie plików z uprawnieniami dla użytkownika nodeapp
 COPY --from=builder --chown=nodeapp:nodeapp /build/node_modules ./node_modules
 COPY --from=builder --chown=nodeapp:nodeapp /build/src ./src
+COPY --from=builder --chown=nodeapp:nodeapp /build/package.json ./package.json
 
 # Healthcheck - z użyciem curl
 HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
