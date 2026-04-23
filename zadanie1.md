@@ -33,51 +33,50 @@ Pełna logika znajduje się w katalogu src/.
 # 2. Plik Dockerfile
 Opracowany plik Dockerfile wykorzystuje zaawansowane techniki konteneryzacji w celu zapewnienia minimalnego rozmiaru obrazu oraz maksymalnego bezpieczeństwa.
 ```dockerfile
-    #Budowanie obrazu (Builder)
-    #Wykorzystanie lekkiego obrazu bazowego Alpine w celu optymalizacji
-    FROM node:20-alpine AS builder
+    # Obraz Node.js w wersji 20-alpine jako bazowy obraz do budowania aplikacji
+FROM node:20-alpine AS builder
 
-    #Katalog roboczy dla procesu budowania
-    WORKDIR /build
+# Katalog roboczy dla procesu budowania
+WORKDIR /build
 
-    #Optymalizacja cache-a: najpierw kopiujemy tylko pliki definicji zależności
-    COPY package.json .
+# Kopiujemy pliki z lokalnego folderu do katalogu roboczego w kontenerze
+COPY package.json .
+COPY src/ ./src/
 
-    #Instalacja tylko zależności produkcyjnych i czyszczenie cache npm
-    RUN npm install --production && npm cache clean --force
+# Instalujemy zależności i budujemy aplikację
+RUN npm install --production && npm cache clean --force
 
-    #Kopiowanie reszty kodu źródłowego z folderu src
-    COPY src/ ./src/
+# Obraz Node.js w wersji 20-alpine jako finalny obraz do uruchomienia aplikacji
+FROM node:20-alpine
 
-    #Finalny obraz produkcyjny
-    FROM node:20-alpine
+# Metadane OCI
+LABEL org.opencontainers.image.authors="Dominik Blaziak"
 
-    #Dane autora zgodnie ze standardem OCI (Open Container Initiative)
-    LABEL org.opencontainers.image.authors="Dominik Błaziak"
+# Instalacja curl do HEALTHCHECK
+RUN apk add --no-cache curl
 
-    #Instalacja curl niezbędnego do działania mechanizmu HEALTHCHECK
-    RUN apk add --no-cache curl
+# Tworzymy użytkownika i grupę, aby aplikacja nie była uruchamiana jako root
+RUN addgroup -S nodeapp && adduser -S nodeapp -G nodeapp
 
-    #Tworzenie dedykowanej grupy i użytkownika (bezpieczeństwo - unikanie konta root)
-    RUN addgroup -S nodeapp && adduser -S nodeapp -G nodeapp
-    USER nodeapp
+# Przełączamy się na użytkownika nodeapp
+USER nodeapp
 
-    WORKDIR /home/nodeapp/app
+# Ustawiamy katalog roboczy dla aplikacji
+WORKDIR /home/nodeapp/app
 
-    #Kopiowanie tylko niezbędnych plików z etapu budowania (minimalizacja warstw)
-    COPY --from=builder --chown=nodeapp:nodeapp /build/node_modules ./node_modules
-    COPY --from=builder --chown=nodeapp:nodeapp /build/src ./src
-    COPY --from=builder --chown=nodeapp:nodeapp /build/package.json .
+# Kopiujemy zbudowane pliki z etapu buildera do finalnego obrazu
+COPY --from=builder --chown=nodeapp:nodeapp /build/node_modules ./node_modules
+COPY --from=builder --chown=nodeapp:nodeapp /build/src ./src
 
-    #Definicja mechanizmu Healthcheck
-    HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
-        CMD curl -f http://localhost:3000/ || exit 1
+# Dodajemy HEALTHCHECK - sprawdzamy, czy aplikacja jest dostępna na porcie 3000
+HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3000/ || exit 1
 
-    #Port, na którym nasłuchuje kontener
-    EXPOSE 3000
+# Port, na którym nasza aplikacja będzie nasłuchiwać
+EXPOSE 3000
 
-    #Uruchomienie aplikacji
-    ENTRYPOINT ["node", "src/bin/www"]
+# Uruchamiamy aplikację
+ENTRYPOINT ["node", "src/bin/www"]
 ```
 -> **Multi-stage Build:** Pozwala na odizolowanie środowiska kompilacji od środowiska uruchomieniowego, 
 dzięki czemu obraz końcowy nie zawiera zbędnych narzędzi.
