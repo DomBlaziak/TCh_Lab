@@ -9,7 +9,7 @@ Podczas inicjalizacji serwer automatycznie wypisuje w standardowym strumieniu wy
 Kod odpowiedzialny za tę funkcjonalność znajduje się w głównym pliku serwera src/bin/www:
 
 Przykład implementacji z src/bin/www:
-
+```javascript    
     #Implementacja logowania parametrów startowych
     const AUTHOR = "Dominik Błaziak";
     const PORT = process.env.PORT || '3000';
@@ -23,7 +23,7 @@ Przykład implementacji z src/bin/www:
     console.log(`[PORT]: ${PORT}`);
     console.log(`Serwer pogodowy uruchomiony poprawnie.`);
     });
-
+```
 # 1b. Funkcjonalność pogodowa
 Aplikacja udostępnia interfejs webowy, w którym użytkownik może wybrać miasto z predefiniowanej listy. 
 Po zatwierdzeniu wyboru, serwer komunikuje się z zewnętrznym API pogodowym i wyświetla dane (temperaturę) bezpośrednio w przeglądarce.
@@ -32,7 +32,7 @@ Pełna logika znajduje się w katalogu src/.
 
 # 2. Plik Dockerfile
 Opracowany plik Dockerfile wykorzystuje zaawansowane techniki konteneryzacji w celu zapewnienia minimalnego rozmiaru obrazu oraz maksymalnego bezpieczeństwa.
-
+```dockerfile
     #Budowanie obrazu (Builder)
     #Wykorzystanie lekkiego obrazu bazowego Alpine w celu optymalizacji
     FROM node:20-alpine AS builder
@@ -78,25 +78,25 @@ Opracowany plik Dockerfile wykorzystuje zaawansowane techniki konteneryzacji w c
 
     #Uruchomienie aplikacji
     ENTRYPOINT ["node", "src/bin/www"]
-
--> Multi-stage Build:Pozwala na odizolowanie środowiska kompilacji od środowiska uruchomieniowego, 
+```
+-> **Multi-stage Build:** Pozwala na odizolowanie środowiska kompilacji od środowiska uruchomieniowego, 
 dzięki czemu obraz końcowy nie zawiera zbędnych narzędzi.
 
--> Alpine Linux: Zastosowanie tej dystrybucji pozwala zredukować rozmiar obrazu do minimum.
+-> **Alpine Linux:** Zastosowanie tej dystrybucji pozwala zredukować rozmiar obrazu do minimum.
 
--> Zasada najniższych uprawnień: Aplikacja działa jako użytkownik nodeapp, a nie root, co ogranicza skutki potencjalnego ataku.
+-> **Zasada najniższych uprawnień:** Aplikacja działa jako użytkownik nodeapp, a nie root, co ogranicza skutki potencjalnego ataku.
 
 # 3. Instrukcja wdrożeniowa i polecenia
-Przed przystąpieniem do budowy należy pobrać repozytorium:
-
+Przed przystąpieniem do budowy należy pobrać repozytorium i  wejść do folderu z plikami:
+    
     git clone https://github.com/DomBlaziak/TCh_Lab.git
     cd TCh_Lab
     
 a) Budowanie obrazu
 Przykładowy proces budowania wykorzystuje lokalny kontekst i standardowe narzędzie Docker Build:
-
+    
     docker build -t dblaziak/repozytorium_1:latest .
-
+    
 b) Uruchomienie kontenera
 Uruchomienie w trybie odłączonym (-d) z przekierowaniem portu 3000 z hosta na port 3000 kontenera (Przykładowe polecenie):
 
