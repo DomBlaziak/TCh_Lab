@@ -5,7 +5,7 @@ var http = require('http');
 // Dane do punktu 1a
 const AUTHOR = "Dominik Błaziak";
 const PORT = process.env.PORT || '3000';
-const START_DATE = new Date().toLocaleString();
+const START_DATE = new Date().toLocaleString('pl-PL');
 
 var server = http.createServer(app);
 

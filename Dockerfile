@@ -1,54 +1,39 @@
-# Rozszerzony frontend dla aplikacji pogodowej
-# syntax=docker/dockerfile:1.3
-
-# Budowanie i pobieranie źródeł (Builder)
+# Obraz Node.js w wersji 20-alpine jako bazowego dla etapu budowania
 FROM node:20-alpine AS builder
 
-# Instalacja narzędzi niezbędnych do klonowania przez SSH
-RUN apk add --no-cache git openssh-client
-
-# Konfiguracja bezpiecznych hostów dla GitHub
-RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
-
-# Ustawienie katalogu roboczego dla budowania
 WORKDIR /build
 
-# Pobieranie kodu z repozytorium przez SSH Mount
-RUN --mount=type=ssh,id=z1_git git clone git@github.com:DomBlaziak/TCh_Lab.git repo && \
-    cp -r repo/src . && \
-    cp repo/package.json . && \
-    rm -rf repo
+# Kopiujemy pliki z lokalnego folderu (to co wgrałeś na GitHuba)
+COPY package.json .
+COPY src/ ./src/
 
-# Instalacja zależności produkcyjnych
+# Instalujemy zależności i budujemy aplikację
 RUN npm install --production && npm cache clean --force
 
-# Obraz końcowy (Produkcyjny)
 FROM node:20-alpine
-
 # Metadane OCI
-LABEL org.opencontainers.image.authors="Dominik Blaziak" \
-      org.opencontainers.image.title="WeatherApp_Zadanie_1" \
-      org.opencontainers.image.description="Aplikacja pogodowa - Zadanie 1 - Technologie Chmurowe" \
-      org.opencontainers.image.source="https://github.com/DomBlaziak/TCh_Lab"
+LABEL org.opencontainers.image.authors="Dominik Blaziak"
 
-# Dołączamy curl do etapu końcowego (do healthchecka)
+# Instalacja curl do HEALTHCHECK
 RUN apk add --no-cache curl
 
-# Dedykowany użytkownik (Bezpieczeństwo)
+# Tworzymy użytkownika i grupę, aby aplikacja nie była uruchamiana jako root
 RUN addgroup -S nodeapp && adduser -S nodeapp -G nodeapp
 USER nodeapp
+
+# Ustawiamy katalog roboczy dla aplikacji
 WORKDIR /home/nodeapp/app
 
-# Kopiowanie plików z uprawnieniami dla użytkownika nodeapp
+# Kopiujemy zbudowane pliki z etapu buildera do finalnego obrazu
 COPY --from=builder --chown=nodeapp:nodeapp /build/node_modules ./node_modules
 COPY --from=builder --chown=nodeapp:nodeapp /build/src ./src
 
-# Healthcheck - z użyciem curl
+# Dodajemy HEALTHCHECK - sprawdzamy, czy aplikacja jest dostępna na porcie 3000
 HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:3000/ || exit 1
 
-# Port aplikacji
+# Port, na którym nasza aplikacja będzie nasłuchiwać
 EXPOSE 3000
 
-# Uruchomienie aplikacji
+# Uruchamiamy aplikację
 ENTRYPOINT ["node", "src/bin/www"]
