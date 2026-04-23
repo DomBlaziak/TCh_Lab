@@ -33,18 +33,20 @@ Pełna logika znajduje się w katalogu src/.
 # 2. Plik Dockerfile
 Opracowany plik Dockerfile wykorzystuje zaawansowane techniki konteneryzacji w celu zapewnienia minimalnego rozmiaru obrazu oraz maksymalnego bezpieczeństwa.
 ```dockerfile
-    # Obraz Node.js w wersji 20-alpine jako bazowy obraz do budowania aplikacji
+   # Obraz Node.js w wersji 20-alpine jako bazowy obraz do budowania aplikacji
 FROM node:20-alpine AS builder
 
 # Katalog roboczy dla procesu budowania
 WORKDIR /build
 
-# Kopiujemy pliki z lokalnego folderu do katalogu roboczego w kontenerze
+# Kopiujemy plik zależności
 COPY package.json .
-COPY src/ ./src/
 
 # Instalujemy zależności i budujemy aplikację
 RUN npm install --production && npm cache clean --force
+
+# Kopiujemy resztę plików źródłowych do katalogu roboczego
+COPY src/ ./src/
 
 # Obraz Node.js w wersji 20-alpine jako finalny obraz do uruchomienia aplikacji
 FROM node:20-alpine
@@ -67,6 +69,7 @@ WORKDIR /home/nodeapp/app
 # Kopiujemy zbudowane pliki z etapu buildera do finalnego obrazu
 COPY --from=builder --chown=nodeapp:nodeapp /build/node_modules ./node_modules
 COPY --from=builder --chown=nodeapp:nodeapp /build/src ./src
+COPY --from=builder --chown=nodeapp:nodeapp /build/package.json ./package.json
 
 # Dodajemy HEALTHCHECK - sprawdzamy, czy aplikacja jest dostępna na porcie 3000
 HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
