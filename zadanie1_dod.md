@@ -81,3 +81,63 @@ EXPOSE 3000
 # Uruchomienie aplikacji
 ENTRYPOINT ["node", "src/bin/www"]
 ```
+# 3. Realizacja budowy wieloplatformowej (Multi-arch)
+Wykorzystując wcześniej skonfigurowany builder oraz zaawansowane flagi silnika BuildKit, uruchomiono proces budowania obrazu dla dwóch architektur:
+
+  **-> linux/amd64** – architektura dla standardowych procesorów Intel/AMD.
+
+  **-> linux/arm64** – architektura dla procesorów Apple Silicon (M1/M2/M3) oraz układów typu Raspberry Pi.
+
+Pełne polecenie budujące:
+
+    docker buildx build -f Dockerfile_Multi --platform linux/amd64,linux/arm64 \
+    --ssh z1_git=$PATH_TO_SSH_KEY \
+    -t $DOCKER_USER/$REPOSITORY_NAME:$TAG \
+    --cache-to type=registry,ref=$CACHE_REPO,mode=max \
+    --cache-from type=registry,ref=$CACHE_REPO \
+    --push .
+
+  Objaśnienie zmiennych:
+
+  **$PATH_TO_SSH_KEY** – lokalna ścieżka do klucza prywatnego SSH (np. ~/.ssh/id_rsa).
+
+  **$DOCKER_USER/$REPOSITORY_NAME:$TAG** – pełny identyfikator obrazu w formacie wymaganym przez Docker Hub (użytkownik/nazwa:wersja).
+
+  **$CACHE_REPO** – adres repozytorium przeznaczonego na dane cache (zazwyczaj to samo repozytorium z dodatkowym tagiem :cache).
+
+**===========================================================================================**
+  
+  **Wyjaśnienie poszczególnych etapów polecenia:**
+
+**--platform:** Pozwala stworzyć jeden obraz, który zadziała na różnych procesorach. Docker sam zadba o to, by użytkownik pobrał wersję pasującą do jego sprzętu.
+
+**--ssh z1_git:** Umożliwia bezpieczne połączenie z GitHubem podczas budowania obrazu. Dzięki temu Docker może pobrać kod źródłowy za pomocą Twojego klucza SSH, ale sam klucz nie zostanie zapisany wewnątrz gotowego obrazu (jest bezpieczny).
+
+**--cache-to/from:** Implementacja Cache Registry. Zamiast przechowywać warstwy cache lokalnie, są one przesyłane do zewnętrznego rejestru Docker Hub. 
+Pozwala to na drastyczne przyspieszenie budowania obrazu w środowiskach rozproszonych i CI/CD. 
+
+**--push:** Powoduje, że po zakończeniu budowania obraz od razu trafia na Twój profil na Docker Hub. Nie musisz wpisywać dodatkowego polecenia docker push.
+
+# 4. Analiza bezpieczeństwa (Docker Scout)
+Zgodnie z wymaganiami zadania, obraz został poddany analizie pod kątem podatności na zagrożenia (CVE). Ponieważ w poprzednim etapie obraz został przesłany bezpośrednio do rejestru zdalnego, narzędzie pobierze dane bezpośrednio z Docker Hub.
+Polecenie wykonujące skanowanie (Należy użyć tej samej nazwy obrazu, która została zdefiniowana w kroku budowania):
+
+    docker scout quickview $DOCKER_USER/$REPOSITORY_NAME:$TAG
+
+
+Wyniki skanowania:
+
+
+
+
+
+
+
+# 5. Weryfikacja wieloplatformowości
+Wykorzystano narzędzie imagetools, które odpytuje zdalne repozytorium o dostępne wersje architekturalne bez konieczności pobierania całego obrazu na dysk.
+
+Polecenie weryfikujące:
+
+     docker buildx imagetools inspect $DOCKER_USER/$REPOSITORY_NAME:$TAG
+
+Wynik potwierdza, że pod jednym tagiem ukryte są dwie wersje binarne. W sekcji Platforms widnieją wpisy dla linux/amd64 oraz linux/arm64, co stanowi dowód poprawnej realizacji zadania.
