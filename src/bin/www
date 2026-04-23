@@ -2,7 +2,6 @@
 var app = require('../app');
 var http = require('http');
 
-// Dane do punktu 1a
 const AUTHOR = "Dominik Blaziak";
 const PORT = process.env.PORT || '3000';
 const START_DATE = new Date().toLocaleString('pl-PL');

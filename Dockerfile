@@ -1,5 +1,5 @@
-# Obraz Node.js w wersji 20-alpine jako bazowy obraz do budowania aplikacji
-FROM node:20-alpine AS builder
+# Obraz Node.js w wersji 24-alpine jako bazowy obraz do budowania aplikacji
+FROM node:24-alpine AS builder
 
 # Katalog roboczy dla procesu budowania
 WORKDIR /build
@@ -13,14 +13,14 @@ RUN npm install --production && npm cache clean --force
 # Kopiujemy resztę plików źródłowych do katalogu roboczego
 COPY src/ ./src/
 
-# Obraz Node.js w wersji 20-alpine jako finalny obraz do uruchomienia aplikacji
-FROM node:20-alpine
+# Obraz Node.js w wersji 24-alpine jako finalny obraz do uruchomienia aplikacji
+FROM node:24-alpine
 
 # Metadane OCI
 LABEL org.opencontainers.image.authors="Dominik Blaziak"
 
-# Instalacja curl do HEALTHCHECK
-RUN apk add --no-cache curl
+# Aktualizacja systemu i instalacja curl dla healthcheck
+RUN apk update && apk upgrade --no-cache && apk add --no-cache curl
 
 # Tworzymy użytkownika i grupę, aby aplikacja nie była uruchamiana jako root
 RUN addgroup -S nodeapp && adduser -S nodeapp -G nodeapp

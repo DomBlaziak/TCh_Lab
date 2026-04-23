@@ -1,9 +1,8 @@
 var express = require('express');
 var router = express.Router();
-var request = require('request');
+var axios = require('axios');
 var config = require('../config');
 
-// Predefiniowana lista miast
 const cities = [
     { name: "Warsaw", query: "Warsaw,PL" },
     { name: "Berlin", query: "Berlin,DE" },
@@ -15,24 +14,24 @@ router.get('/', function(req, res) {
   res.render('index', { weather: null, error: null, cities: cities });
 });
 
-router.post('/', function(req, res) {
+router.post('/', async function(req, res) {
   let cityQuery = req.body.city; 
   let url = config.url + `&q=${cityQuery}`;
   
-  request(url, function(err, response, body) {
-    if(err) {
-      res.render('index', { weather: null, error: 'API Connection Error', cities: cities });
+  try {
+    // Zapytanie asynchroniczne przez axios
+    const response = await axios.get(url);
+    let weather = response.data;
+    
+    if(!weather.main) {
+      res.render('index', { weather: null, error: 'City not found', cities: cities });
     } else {
-      let weather = JSON.parse(body);
-      
-      if(weather.main == undefined) {
-        res.render('index', { weather: null, error: 'City not found', cities: cities });
-      } else {
-        let weatherText = `In ${weather.name} it is currently ${weather.main.temp}°C.`;
-        res.render('index', { weather: weatherText, error: null, cities: cities });
-      }
+      let weatherText = `In ${weather.name} it is currently ${weather.main.temp}°C.`;
+      res.render('index', { weather: weatherText, error: null, cities: cities });
     }
-  });
+  } catch (error) {
+    res.render('index', { weather: null, error: 'API Connection Error', cities: cities });
+  }
 });
 
 module.exports = router;

@@ -26,7 +26,7 @@ Treść pliku Dockerfile_Multi:
 # syntax=docker/dockerfile:1.3
 
 # Budowanie i pobieranie źródeł (Builder)
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 # Instalacja narzędzi niezbędnych do klonowania przez SSH
 RUN apk add --no-cache git openssh-client
@@ -47,7 +47,7 @@ RUN --mount=type=ssh,id=z1_git git clone git@github.com:DomBlaziak/TCh_Lab.git r
 RUN npm install --production && npm cache clean --force
 
 # Obraz końcowy (Produkcyjny)
-FROM node:20-alpine
+FROM node:24-alpine
 
 # Metadane OCI
 LABEL org.opencontainers.image.authors="Dominik Blaziak" \
@@ -55,8 +55,8 @@ LABEL org.opencontainers.image.authors="Dominik Blaziak" \
       org.opencontainers.image.description="Aplikacja pogodowa - Zadanie 1 - Technologie Chmurowe" \
       org.opencontainers.image.source="https://github.com/DomBlaziak/TCh_Lab"
 
-# Dołączamy curl do etapu końcowego (do healthchecka)
-RUN apk add --no-cache curl
+# Aktualizacja systemu i instalacja curl dla healthcheck
+RUN apk update && apk upgrade --no-cache && apk add --no-cache curl
 
 # Dedykowany użytkownik (Bezpieczeństwo)
 RUN addgroup -S nodeapp && adduser -S nodeapp -G nodeapp
@@ -120,7 +120,8 @@ Pozwala to na drastyczne przyspieszenie budowania obrazu w środowiskach rozpros
 **--push:** Powoduje, że po zakończeniu budowania obraz od razu trafia na Twój profil na Docker Hub. Nie musisz wpisywać dodatkowego polecenia docker push.
 
 # 4. Analiza bezpieczeństwa (Docker Scout)
-Zgodnie z wymaganiami zadania, obraz został poddany analizie pod kątem podatności na zagrożenia (CVE). Ponieważ w poprzednim etapie obraz został przesłany bezpośrednio do rejestru zdalnego, narzędzie pobierze dane bezpośrednio z Docker Hub.
+Zgodnie z wymaganiami zadania, obraz został poddany analizie pod kątem podatności na zagrożenia (CVE). 
+
 Polecenie wykonujące skanowanie (Należy użyć tej samej nazwy obrazu, która została zdefiniowana w kroku budowania):
 
     docker scout quickview $DOCKER_USER/$REPOSITORY_NAME:$TAG
