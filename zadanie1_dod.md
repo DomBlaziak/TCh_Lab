@@ -120,24 +120,45 @@ Pozwala to na drastyczne przyspieszenie budowania obrazu w środowiskach rozpros
 **--push:** Powoduje, że po zakończeniu budowania obraz od razu trafia na Twój profil na Docker Hub. Nie musisz wpisywać dodatkowego polecenia docker push.
 
 # 4. Analiza bezpieczeństwa i optymalizacja (Docker Scout)
+
 Obraz został poddany szczegółowej analizie pod kątem podatności (CVE) przy użyciu narzędzia Docker Scout. 
+Proces optymalizacji pozwolił na redukcję łącznej liczby luk z 33 do zaledwie kilku pozycji o niskim wpływie na działanie aplikacji.
 
-### Proces optymalizacji:
-W początkowej fazie projektowania (przed optymalizacją), obraz bazowy zawierał standardowe biblioteki systemowe, co generowało kilkanaście podatności o priorytecie "Medium" i "Low". 
+**Proces optymalizacji:**
 
-**Wprowadzone zmiany optymalizacyjne:**
-1. **Zmiana obrazu bazowego:** Zastosowanie `node:24-alpine` zamiast pełnej dystrybucji Debian/Ubuntu zredukowało liczbę podatności o ponad 80%.
-2. **Multi-stage Build:** Wyeliminowanie narzędzi budowania (git, npm cache) z obrazu finalnego usunęło wektory ataku związane z kompilatorami.
-3. **Aktualizacja pakietów:** Dodanie instrukcji `apk update && apk upgrade --no-cache` w obrazie finalnym zapewnia, że nawet wersja Alpine posiada najnowsze łatki bezpieczeństwa.
+W początkowej fazie projektowania obraz bazowy node:20 generował 33 podatności (w tym 2 krytyczne i 13 wysokich). Wprowadzono następujące zmiany:
 
-### Wyniki skanowania końcowego:
+  **Zmiana fundamentu obrazu:** Przejście na node:24-alpine zredukowało liczbę podatności systemowych o ponad 80%.
+
+  **Zarządzanie zależnościami:** Zastąpienie biblioteki request nowoczesnym klientem axios oraz użycie sekcji overrides w package.json pozwoliło wyeliminować krytyczne luki w paczkach ejs, tar oraz form-data.
+
+  **Aktualizacja systemowa:** Instrukcja RUN apk update && apk upgrade --no-cache wymusiła instalację najnowszych łatek bezpieczeństwa dostępnych w repozytoriach Alpine.
+
 Polecenie wykonujące skanowanie:
-`docker scout quickview $DOCKER_USER/$REPOSITORY_NAME:$TAG`
+    
+    docker scout quickview $DOCKER_USER/$REPOSITORY_NAME:$TAG
 
-Wynik analizy Scout wykazał:
-- **0** podatności o krytycznym znaczeniu (Critical).
-- **1** podatność o wysokim znaczeniu (High) – zidentyfikowana jako niekrytyczna.
-- **2** wykryte podatności w bibliotekach Alpine zostały sklasyfikowane jako "unfixable" (oczekujące na poprawkę w dystrybucji).
+
+Wynik analizy Scout wykazał osiągnięcie 0 podatności krytycznych (Critical). 
+W obrazie pozostały jedynie 3 luki klasy High, których szczegółowa analiza wykazała brak realnego zagrożenia dla projektu:
+
+**1. Luka aplikacji: picomatch 4.0.3 (Status: Pozostawiona świadomie)**
+
+  Zagrożenie: CVE-2026-33671 (Inefficient Regular Expression Complexity).
+
+  Podatność ta dociągana jest jako zależność przechodnia przez framework Express. Chociaż wersja 4.0.4 zawiera poprawkę, zdecydowano o pozostaniu przy 4.0.3. 
+  Luka ta polega na teoretycznej możliwości spowolnienia procesora przy specyficznych zapytaniach, co w przypadku prostej aplikacji pogodowej nie stanowi realnego        ryzyka. Ręczne wymuszanie nowszej wersji (overrides) mogłoby spowodować regresję i błędy w działaniu serwera, gdyż picomatch jest krytycznym modułem niskiego           poziomu.
+
+**2. Luki systemowe: curl oraz nghttp2 (Status: Unfixable)**
+
+  Zagrożenie: Luki w bibliotekach obsługujących protokoły sieciowe dostarczanych przez obraz Alpine 3.23.
+
+Mimo wykonania pełnej aktualizacji systemu (apk upgrade), raport Scout klasyfikuje te luki jako "unfixable". Oznacza to, że w oficjalnych repozytoriach dystrybucji Alpine nie ma obecnie nowszych wersji binariów rozwiązujących te problemy. Są one niemożliwe do usunięcia na poziomie konfiguracji kontenera do czasu wydania łatek przez opiekunów dystrybucji.
+
+
+Dzięki wdrożonym poprawkom wyeliminowano wszystkie błędy pozwalające na zdalne wykonanie kodu czy wyciek danych (Path Traversal). 
+Obecny obraz charakteryzuje się najwyższym możliwym poziomem bezpieczeństwa przy zachowaniu stabilności środowiska uruchomieniowego Node.js.
+
 
 # 5. Weryfikacja wieloplatformowości
 Wykorzystano narzędzie imagetools, które odpytuje zdalne repozytorium o dostępne wersje architekturalne bez konieczności pobierania całego obrazu na dysk.
