@@ -122,10 +122,10 @@ Aby przeanalizować strukturę warstw oraz ich wielkość:
 Poprawność wdrożenia aplikacji można zweryfikować na dwa sposoby:
 
 1. **Interfejs WWW:** Pod adresem `http://localhost:3000` dostępny jest UI, który pozwala wybrać miasto z listy i wyświetlić aktualne dane pogodowe.
-2. **Weryfikacja logów:** Wykonanie polecenia `docker logs weather-app-container` potwierdza poprawną inicjalizację aplikacji. 
-W terminalu wyświetlane są dane autora, aktualna data oraz port nasłuchiwania..
+2. **Weryfikacja logów:** Wykonanie polecenia `docker logs weather-app-container` potwierdza poprawną inicjalizację aplikacji. W terminalu wyświetlane są dane autora, aktualna data oraz port nasłuchiwania.
 
-
+> **Informacja techniczna (Strefa czasowa):**
+> Aplikacja uruchomiona wewnątrz kontenera bazującego na obrazie Alpine Linux domyślnie korzysta ze strefy czasowej **UTC**. W związku z tym czas rejestrowany w logach startowych może być przesunięty względem czasu lokalnego hosta (np. o 2 godziny wstecz względem strefy CEST). Jest to zamierzone działanie, zgodne z dobrymi praktykami konteneryzacji, zapewniające spójność logów w środowiskach rozproszonych.
 
 *Zrzuty ekranu potwierdzające powyższe punkty zostały dołączone do sprawozdania głównego (PDF).*
     
