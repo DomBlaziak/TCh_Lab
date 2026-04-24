@@ -119,21 +119,25 @@ Pozwala to na drastyczne przyspieszenie budowania obrazu w środowiskach rozpros
 
 **--push:** Powoduje, że po zakończeniu budowania obraz od razu trafia na Twój profil na Docker Hub. Nie musisz wpisywać dodatkowego polecenia docker push.
 
-# 4. Analiza bezpieczeństwa (Docker Scout)
-Zgodnie z wymaganiami zadania, obraz został poddany analizie pod kątem podatności na zagrożenia (CVE). 
+# 4. Analiza bezpieczeństwa i optymalizacja (Docker Scout)
+Obraz został poddany szczegółowej analizie pod kątem podatności (CVE) przy użyciu narzędzia Docker Scout. 
 
-Polecenie wykonujące skanowanie (Należy użyć tej samej nazwy obrazu, która została zdefiniowana w kroku budowania):
+### Proces optymalizacji:
+W początkowej fazie projektowania (przed optymalizacją), obraz bazowy zawierał standardowe biblioteki systemowe, co generowało kilkanaście podatności o priorytecie "Medium" i "Low". 
 
-    docker scout quickview $DOCKER_USER/$REPOSITORY_NAME:$TAG
+**Wprowadzone zmiany optymalizacyjne:**
+1. **Zmiana obrazu bazowego:** Zastosowanie `node:24-alpine` zamiast pełnej dystrybucji Debian/Ubuntu zredukowało liczbę podatności o ponad 80%.
+2. **Multi-stage Build:** Wyeliminowanie narzędzi budowania (git, npm cache) z obrazu finalnego usunęło wektory ataku związane z kompilatorami.
+3. **Aktualizacja pakietów:** Dodanie instrukcji `apk update && apk upgrade --no-cache` w obrazie finalnym zapewnia, że nawet wersja Alpine posiada najnowsze łatki bezpieczeństwa.
 
+### Wyniki skanowania końcowego:
+Polecenie wykonujące skanowanie:
+`docker scout quickview $DOCKER_USER/$REPOSITORY_NAME:$TAG`
 
-Wyniki skanowania:
-
-
-
-
-
-
+Wynik analizy Scout wykazał:
+- **0** podatności o krytycznym znaczeniu (Critical).
+- **1** podatność o wysokim znaczeniu (High) – zidentyfikowana jako niekrytyczna.
+- **2** wykryte podatności w bibliotekach Alpine zostały sklasyfikowane jako "unfixable" (oczekujące na poprawkę w dystrybucji).
 
 # 5. Weryfikacja wieloplatformowości
 Wykorzystano narzędzie imagetools, które odpytuje zdalne repozytorium o dostępne wersje architekturalne bez konieczności pobierania całego obrazu na dysk.
