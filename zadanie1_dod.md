@@ -138,6 +138,8 @@ Polecenie wykonujące skanowanie:
     
     docker scout quickview $DOCKER_USER/$REPOSITORY_NAME:$TAG
 
+    docker scout cves $DOCKER_USER/$REPOSITORY_NAME:$TAG
+
 
 Wynik analizy Scout wykazał osiągnięcie 0 podatności krytycznych (Critical). 
 W obrazie pozostały jedynie 3 luki klasy High, których szczegółowa analiza wykazała brak realnego zagrożenia dla projektu:
