@@ -168,3 +168,6 @@ Polecenie weryfikujące:
      docker buildx imagetools inspect $DOCKER_USER/$REPOSITORY_NAME:$TAG
 
 Wynik potwierdza, że pod jednym tagiem ukryte są dwie wersje binarne. W sekcji Platforms widnieją wpisy dla linux/amd64 oraz linux/arm64, co stanowi dowód poprawnej realizacji zadania.
+
+
+*Zrzuty ekranu potwierdzające powyższe punkty zostały dołączone do sprawozdania głównego (PDF).*
