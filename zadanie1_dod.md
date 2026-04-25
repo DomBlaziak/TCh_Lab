@@ -134,7 +134,7 @@ W początkowej fazie projektowania obraz bazowy node:20 generował 33 podatnośc
 
   **Aktualizacja systemowa:** Instrukcja RUN apk update && apk upgrade --no-cache wymusiła instalację najnowszych łatek bezpieczeństwa dostępnych w repozytoriach Alpine.
 
-Polecenie wykonujące skanowanie:
+Polecenia wykonujące skanowanie:
     
     docker scout quickview $DOCKER_USER/$REPOSITORY_NAME:$TAG
 
